@@ -6,27 +6,49 @@ searchForm.addEventListener('submit', (e) => {
     e.preventDefault();
     searchRecipes();
 })
-
+const apiKey = '95ffc1b28b4240068bb31880ab7cba74'; 
 async function searchRecipes() {
     const searchValue = searchInput.value.trim();
-    const response = await fetch(`https://api.edamam.com/search?q=${searchValue}&app_id=7aa516a5&app_key=dc836a223fb788b11ae390504d9e97ce&from=0&to=10`);
+    // Replace 'YOUR_SPOONACULAR_API_KEY' with your actual Spoonacular API key
+    
+    const response = await fetch(`https://api.spoonacular.com/recipes/complexSearch?query=${searchValue}&apiKey=${apiKey}&number=10`);
     const data = await response.json();
-    displayRecipes(data.hits);
+    console.log("Spoonacular API response:", data); // Log the API response
+    displayRecipes(data.results);
 }
 
-function displayRecipes(recipes) {
+async function displayRecipes(recipes) {
     let html = '';
-    recipes.forEach((recipe) => {
+    for (const recipe of recipes) {
+        // Fetch full recipe information using the recipe ID
+        const recipeInfoResponse = await fetch(`https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`);
+        const recipeInfo = await recipeInfoResponse.json();
+
+        let ingredientsHtml = '';
+        if (recipeInfo.extendedIngredients) {
+            ingredientsHtml = recipeInfo.extendedIngredients.map(ingredient => `<li>${ingredient.original}</li>`).join('');
+        }
+
+        let instructionsHtml = '';
+        if (recipeInfo.instructions) {
+            instructionsHtml = `<p>${recipeInfo.instructions}</p>`;
+        } else if (recipeInfo.analyzedInstructions && recipeInfo.analyzedInstructions.length > 0) {
+            instructionsHtml = recipeInfo.analyzedInstructions[0].steps.map(step => `<p>${step.step}</p>`).join('');
+        }
+
         html += `
         <div>
-            <img src="${recipe.recipe.image}" alt="${recipe.recipe.label}">
-            <h3>${recipe.recipe.label}</h3>
+            <img src="${recipe.image}" alt="${recipe.title}">
+            <h3>${recipe.title}</h3>
+            <h4>Ingredients:</h4>
             <ul>
-                ${recipe.recipe.ingredientLines.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                ${ingredientsHtml}
             </ul>
-            <a href="${recipe.recipe.url}" target="_blank">View Recipe</a>
+            <h4>Instructions:</h4>
+            ${instructionsHtml}
+            <a href="${recipeInfo.sourceUrl}" target="_blank">View Full Recipe</a>
         </div> 
-        `
-    })
+        `;
+    }
     resultsList.innerHTML = html;
 }
