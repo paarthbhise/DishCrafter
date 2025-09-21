@@ -14,6 +14,19 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative; /* Needed for pseudo-element reflections */
+}
+
+body::before { /* Subtle background reflection/overlay */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
 }
 
 @keyframes GradientFlow {
@@ -182,6 +195,7 @@ button[type="submit"]:hover::before {
     border: 1px solid rgba(255, 255, 255, 0.7);
     overflow: hidden;
     position: relative;
+    transform-style: preserve-3d; /* For 3D effects */
 }
 
 #results > div::before {
@@ -197,8 +211,24 @@ button[type="submit"]:hover::before {
     z-index: 0;
 }
 
-#results > div:hover::before {
-    opacity: 1;
+#results > div::after { /* Reflection effect */
+    content: '';
+    position: absolute;
+    bottom: -100%; /* Start below the card */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0.0) 100%);
+    transform: rotateX(180deg) scaleY(0.5); /* Flip and scale for reflection */
+    transform-origin: top;
+    opacity: 0;
+    transition: all 0.6s ease;
+    z-index: -1;
+}
+
+#results > div:hover::after {
+    bottom: -50%; /* Move reflection up on hover */
+    opacity: 0.5;
 }
 
 #results > div:hover {
